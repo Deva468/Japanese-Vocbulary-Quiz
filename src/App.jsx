@@ -1,14 +1,51 @@
 import { useState } from "react";
 import "./App.css";
+import "./profile.css";
 import vocabularyByLevel from "./data/vocabulary";
+import Nav from "./components/Nav";
+import Profile from "./components/Profile";
+
+const HISTORY_KEY = "jvq_quiz_history";
+const PROFILE_KEY = "jvq_profile";
 
 function shuffleArray(array) {
   return [...array].sort(() => Math.random() - 0.5);
 }
 
-// Splits a level's vocabulary array into 5 non-overlapping sub-tests.
-// Uses ONLY the existing words in vocabulary.js — no new words added.
-// Words are split as evenly as possible across the 5 tests.
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(history) {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  } catch {
+    // ignore storage errors (e.g. private browsing)
+  }
+}
+
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    return raw ? JSON.parse(raw) : { name: "", email: "" };
+  } catch {
+    return { name: "", email: "" };
+  }
+}
+
+function saveProfile(profile) {
+  try {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  } catch {
+    // ignore storage errors
+  }
+}
+
 function splitIntoSubTests(levelVocabulary, numTests = 5) {
   const total = levelVocabulary.length;
   const baseSize = Math.floor(total / numTests);
@@ -18,7 +55,6 @@ function splitIntoSubTests(levelVocabulary, numTests = 5) {
   let start = 0;
 
   for (let i = 0; i < numTests; i++) {
-    // Distribute the remainder words across the first few tests
     const size = baseSize + (i < remainder ? 1 : 0);
     const chunk = levelVocabulary.slice(start, start + size);
     start += size;
@@ -35,7 +71,7 @@ function splitIntoSubTests(levelVocabulary, numTests = 5) {
 }
 
 function App() {
-  // screen: "levelSelect" | "testSelect" | "quiz" | "result"
+  // screen: "levelSelect" | "testSelect" | "quiz" | "result" | "profile"
   const [screen, setScreen] = useState("levelSelect");
 
   const [selectedLevel, setSelectedLevel] = useState(null);
@@ -50,6 +86,10 @@ function App() {
 
   const [options, setOptions] = useState([]);
 
+  // Quiz history + profile (persisted to localStorage; no backend/auth exists yet)
+  const [history, setHistory] = useState(loadHistory());
+  const [profile, setProfile] = useState(loadProfile());
+
   const levels = [
     ["N5", "Beginner", "Basic Japanese"],
     ["N4", "Elementary", "Elementary Japanese"],
@@ -58,11 +98,6 @@ function App() {
     ["N1", "Advanced", "Advanced Vocabulary"],
   ];
 
-  // Create 3 options: 1 correct + 2 wrong, preferring distractors from the
-  // same category so wrong answers are contextually similar instead of
-  // random words from unrelated categories. Distractors are pulled from
-  // the FULL level vocabulary (not just the current sub-test) so small
-  // sub-tests still get good distractors.
   const createOptions = (question, levelVocabulary) => {
     const sameCategory = shuffleArray(
       levelVocabulary.filter(
@@ -81,13 +116,11 @@ function App() {
     return shuffleArray([question, ...wrongAnswers]);
   };
 
-  // Step 1: pick a level -> show sub-test list
   const openLevel = (level) => {
     setSelectedLevel(level);
     setScreen("testSelect");
   };
 
-  // Step 2: pick a sub-test -> start quiz with that test's unique words
   const startSubTest = (level, testNumber, words) => {
     const shuffledQuestions = shuffleArray(words);
 
@@ -112,8 +145,24 @@ function App() {
     }
   };
 
+  const recordQuizResult = (finalScore) => {
+    const entry = {
+      id: Date.now(),
+      level: selectedLevel,
+      testNumber: selectedTestNumber,
+      score: finalScore,
+      total: quizLength,
+      date: new Date().toISOString(),
+    };
+
+    const updatedHistory = [...history, entry];
+    setHistory(updatedHistory);
+    saveHistory(updatedHistory);
+  };
+
   const handleNextQuestion = () => {
     if (currentIndex + 1 >= questions.length) {
+      recordQuizResult(score);
       setScreen("result");
       return;
     }
@@ -141,37 +190,64 @@ function App() {
     setScreen("levelSelect");
   };
 
+  const openProfile = () => {
+    setSelectedAnswer(null);
+    setScreen("profile");
+  };
+
+  const handleSaveProfile = (updatedProfile) => {
+    setProfile(updatedProfile);
+    saveProfile(updatedProfile);
+  };
+
+  // ================= PROFILE SCREEN =================
+  if (screen === "profile") {
+    return (
+      <>
+        <Nav currentScreen={screen} onHome={goToLevelList} onProfile={openProfile} />
+        <Profile
+          profile={profile}
+          onSaveProfile={handleSaveProfile}
+          history={history}
+        />
+      </>
+    );
+  }
+
   // ================= LEVEL SELECT SCREEN =================
   if (screen === "levelSelect") {
     return (
-      <div className="app home-screen">
-        <div className="welcome-card">
-          <div className="logo-circle">🇯🇵</div>
+      <>
+        <Nav currentScreen={screen} onHome={goToLevelList} onProfile={openProfile} />
+        <div className="app home-screen">
+          <div className="welcome-card">
+            <div className="logo-circle">🇯🇵</div>
 
-          <p className="small-title">JAPANESE LEARNING</p>
+            <p className="small-title">JAPANESE LEARNING</p>
 
-          <h1>Japanese Vocabulary</h1>
+            <h1>Japanese Vocabulary </h1>
 
-          <p className="subtitle">
-            Choose your JLPT level
-            <br />
-            and start learning
-          </p>
+            <p className="subtitle">
+              Choose your JLPT level
+              <br />
+              and start learning
+            </p>
 
-          <div className="level-buttons">
-            {levels.map(([level, title, description]) => (
-              <button key={level} onClick={() => openLevel(level)}>
-                <span className="level-name">{level}</span>
-                <span className="level-copy">
-                  <strong>{title}</strong>
-                  <small>{description}</small>
-                </span>
-                <span className="level-arrow">→</span>
-              </button>
-            ))}
+            <div className="level-buttons">
+              {levels.map(([level, title, description]) => (
+                <button key={level} onClick={() => openLevel(level)}>
+                  <span className="level-name">{level}</span>
+                  <span className="level-copy">
+                    <strong>{title}</strong>
+                    <small>{description}</small>
+                  </span>
+                  <span className="level-arrow">→</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -180,45 +256,48 @@ function App() {
     const subTests = splitIntoSubTests(vocabularyByLevel[selectedLevel]);
 
     return (
-      <div className="app home-screen">
-        <div className="welcome-card">
-          <div className="logo-circle">🇯🇵</div>
+      <>
+        <Nav currentScreen={screen} onHome={goToLevelList} onProfile={openProfile} />
+        <div className="app home-screen">
+          <div className="welcome-card">
+            <div className="logo-circle">🇯🇵</div>
 
-          <p className="small-title">{selectedLevel} VOCABULARY</p>
+            <p className="small-title">{selectedLevel} VOCABULARY</p>
 
-          <h1>Choose a Test</h1>
+            <h1>Choose a Test</h1>
 
-          <p className="subtitle">
-            {subTests.length} tests available for {selectedLevel}
-            <br />
-            each with different words
-          </p>
+            <p className="subtitle">
+              {subTests.length} tests available for {selectedLevel}
+              <br />
+              each with different words
+            </p>
 
-          <div className="level-buttons">
-            {subTests.map((test) => (
-              <button
-                key={test.testNumber}
-                onClick={() =>
-                  startSubTest(selectedLevel, test.testNumber, test.words)
-                }
-              >
-                <span className="level-name">
-                  {selectedLevel} #{test.testNumber}
-                </span>
-                <span className="level-copy">
-                  <strong>Test {test.testNumber}</strong>
-                  <small>{test.words.length} questions</small>
-                </span>
-                <span className="level-arrow">→</span>
-              </button>
-            ))}
+            <div className="level-buttons">
+              {subTests.map((test) => (
+                <button
+                  key={test.testNumber}
+                  onClick={() =>
+                    startSubTest(selectedLevel, test.testNumber, test.words)
+                  }
+                >
+                  <span className="level-name">
+                    {selectedLevel} #{test.testNumber}
+                  </span>
+                  <span className="level-copy">
+                    <strong>Test {test.testNumber}</strong>
+                    <small>{test.words.length} questions</small>
+                  </span>
+                  <span className="level-arrow">→</span>
+                </button>
+              ))}
+            </div>
+
+            <button className="home-button" onClick={goToLevelList}>
+              ← Back to Levels
+            </button>
           </div>
-
-          <button className="home-button" onClick={goToLevelList}>
-            ← Back to Levels
-          </button>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -257,6 +336,10 @@ function App() {
 
             <button className="home-button" onClick={goToLevelList}>
               🏠 Home
+            </button>
+
+            <button className="home-button" onClick={openProfile}>
+              👤 View Profile
             </button>
           </div>
         </div>

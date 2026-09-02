@@ -1,0 +1,276 @@
+/* ===== Top Navigation Bar ===== */
+.app-nav {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.app-nav-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-nav-brand {
+  font-weight: 700;
+  font-size: 15px;
+  color: #333;
+}
+
+.app-nav-links {
+  display: flex;
+  gap: 8px;
+}
+
+.app-nav-link {
+  border: none;
+  background: transparent;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.app-nav-link:hover {
+  background: rgba(255, 105, 135, 0.1);
+  color: #ff6987;
+  transform: translateY(-1px);
+}
+
+.app-nav-link.active {
+  background: linear-gradient(135deg, #ff6987, #ff8fa3);
+  color: white;
+}
+
+/* ===== Profile Page Layout ===== */
+.profile-page {
+  max-width: 640px;
+  margin: 24px auto;
+  padding: 0 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-card {
+  background: white;
+  border-radius: 18px;
+  padding: 28px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  text-align: center;
+  animation: fadeInUp 0.35s ease;
+}
+
+.profile-card:not(:first-child) {
+  text-align: left;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Avatar */
+.avatar-circle {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6987, #ff8fa3);
+  color: white;
+  font-size: 28px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  box-shadow: 0 6px 16px rgba(255, 105, 135, 0.35);
+}
+
+.profile-name {
+  margin: 4px 0 2px;
+  font-size: 22px;
+  color: #222;
+}
+
+.profile-email {
+  color: #888;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.edit-profile-btn {
+  border: none;
+  background: #fff0f3;
+  color: #ff6987;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-profile-btn:hover {
+  background: #ff6987;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.profile-edit-form input {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  font-size: 14px;
+  outline: none;
+}
+
+.profile-edit-form input:focus {
+  border-color: #ff8fa3;
+}
+
+/* Section titles */
+.profile-section-title {
+  font-size: 17px;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.empty-state {
+  color: #999;
+  font-size: 14px;
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.stat-card {
+  background: #fafafa;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  background: #fff0f3;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ff6987;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+  text-align: center;
+}
+
+/* Level progress */
+.level-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.level-row {
+  display: grid;
+  grid-template-columns: 42px 1fr 42px;
+  align-items: center;
+  gap: 10px;
+}
+
+.level-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  padding: 4px 0;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.level-badge-N5 { background: #7ed6a5; }
+.level-badge-N4 { background: #6fb3e0; }
+.level-badge-N3 { background: #f2c14e; }
+.level-badge-N2 { background: #f2914e; }
+.level-badge-N1 { background: #e05c6f; }
+
+.level-bar-track {
+  height: 10px;
+  background: #f0f0f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.level-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff8fa3, #ff6987);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.level-percent {
+  font-size: 13px;
+  font-weight: 700;
+  color: #555;
+  text-align: right;
+}
+
+.level-sub-note {
+  grid-column: 2 / span 2;
+  font-size: 11px;
+  color: #aaa;
+  margin-top: -6px;
+}
+
+.progress-note {
+  margin-top: 18px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .profile-page {
+    margin: 12px auto;
+  }
+  .app-nav-brand {
+    font-size: 13px;
+  }
+}
